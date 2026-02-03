@@ -1,0 +1,7 @@
+{
+  "name": "OmniAgent: Multi-Agent Personal Assistant",
+  "description": "A high-sophistication personal agent powered by a multi-agent orchestration layer (inspired by Autogen) and Gemini 3 Flash. Manage tasks, scheduling, and daily planning through collaborative AI sub-agents.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
