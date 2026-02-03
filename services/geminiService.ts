@@ -1,7 +1,6 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import { AgentRole, AgentLog, AppState } from "../types";
-import { AGENT_SYSTEM_PROMPTS } from "../constants";
+import { AgentRole, AgentLog, AppState } from "../types.ts";
+import { AGENT_SYSTEM_PROMPTS } from "../constants.ts";
 
 // Correctly initialize GoogleGenAI using the mandatory named parameter for apiKey.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -33,25 +32,25 @@ export async function runAgentWorkflow(
 
   try {
     // --- Step 1: Planner Agent ---
+    // Using gemini-3-pro-preview for complex reasoning tasks as per guidelines.
     addLog(AgentRole.PLANNER, "Analyzing user request and state...");
     const plannerResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: `User Request: ${userInput}\n\nCurrent App State: ${JSON.stringify({
         tasks: state.tasks,
         events: state.events
       })}\n\nTask: ${AGENT_SYSTEM_PROMPTS.PLANNER}`,
       config: {
-        thinkingConfig: { thinkingBudget: 5000 }
+        thinkingConfig: { thinkingBudget: 10000 }
       }
     });
-    // Access response text via the .text property as per Gemini SDK standards.
+    
     addLog(AgentRole.PLANNER, plannerResponse.text || "Decomposed into strategy: Fetch state, Process logic, Review.");
 
     // --- Step 2: Manager/Executor Agent ---
     addLog(AgentRole.MANAGER, "Retrieving relevant data...");
-    // Utilize responseSchema to ensure structured JSON output for state updates.
     const toolResponse = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: `Strategy: ${plannerResponse.text}\nUser Query: ${userInput}\n\nTask: ${AGENT_SYSTEM_PROMPTS.EXECUTOR}. If the user wants to add/remove tasks or events, provide a JSON structure reflecting changes.`,
       config: {
         responseMimeType: "application/json",
@@ -71,7 +70,19 @@ export async function runAgentWorkflow(
                 } 
               } 
             },
-            newEvents: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, startTime: { type: Type.STRING } } } }
+            newEvents: { 
+              type: Type.ARRAY, 
+              items: { 
+                type: Type.OBJECT, 
+                properties: { 
+                  title: { type: Type.STRING }, 
+                  startTime: { type: Type.STRING },
+                  endTime: { type: Type.STRING },
+                  type: { type: Type.STRING },
+                  location: { type: Type.STRING }
+                } 
+              } 
+            }
           }
         }
       }

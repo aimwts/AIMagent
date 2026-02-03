@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AppState, ChatMessage, Task, CalendarEvent, AgentLog } from './types';
-import { INITIAL_TASKS, INITIAL_EVENTS } from './constants';
-import Dashboard from './components/Dashboard';
-import CalendarView from './components/CalendarView';
-import AgentLogPanel from './components/AgentLogPanel';
-import { runAgentWorkflow } from './services/geminiService';
+import { AppState, ChatMessage, Task, CalendarEvent, AgentLog } from './types.ts';
+import { INITIAL_TASKS, INITIAL_EVENTS } from './constants.ts';
+import Dashboard from './components/Dashboard.tsx';
+import CalendarView from './components/CalendarView.tsx';
+import AgentLogPanel from './components/AgentLogPanel.tsx';
+import { runAgentWorkflow } from './services/geminiService.ts';
 import { 
   LayoutDashboard, 
   MessageSquare, 
@@ -145,7 +145,8 @@ const App: React.FC = () => {
             title: e.title,
             startTime: e.startTime,
             endTime: e.endTime || 'Noon',
-            type: e.type || 'work'
+            type: e.type || 'work',
+            location: e.location
           });
         });
       }
