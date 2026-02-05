@@ -2,8 +2,28 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AgentRole, AgentLog, AppState } from "../types.ts";
 import { AGENT_SYSTEM_PROMPTS } from "../constants.ts";
 
-// Correctly initialize GoogleGenAI using the mandatory named parameter for apiKey.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Avoid initializing the GoogleGenAI client in browser bundles —
+// that both exposes the API key and will throw when no key is present.
+const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+let ai: any;
+if (!isBrowser) {
+  // Server / build-time environment: initialize if key present.
+  if (process.env.API_KEY) {
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  } else {
+    // No key provided — allow module to load but log a warning.
+    // Consumers should handle the missing client gracefully.
+    console.warn('GEMINI API key not set (process.env.API_KEY). GoogleGenAI will be unavailable.');
+    ai = null;
+  }
+} else {
+  // Browser: provide a safe stub so the app doesn't crash.
+  ai = {
+    models: {
+      generateContent: async () => ({ text: "GoogleGenAI is unavailable in the browser. Run this on a server." })
+    }
+  };
+}
 
 export interface AgentWorkflowResult {
   response: string;
